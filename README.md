@@ -22,12 +22,17 @@ To build and run the game you will need **nasm** and **[qemu-system](https://www
 Run the following commands:
 - **Ubuntu/Debian**
 `` sudo apt install nasm``
+
 ``apt-get install qemu ``
+
 - **Arch**
 ``pacman -S nasm``
+
 ``pacman -S qemu``
+
 - **Fedora**
 ``dnf install nasm``
+
 ``dnf install @virtualization``
 
 If you run into problems try the `sudo` version of them.
@@ -41,6 +46,7 @@ Download the project as zip or clone it:
 
     To make sure that everything works properly you can run `make test` to test things.
     You should get something simmilar to this:
+    
     ![image](/imgs/hello.png)
 
 
@@ -48,8 +54,10 @@ Download the project as zip or clone it:
 
     Knowing everything is **ok**.
     Go to the extracted files and run the commands `make` and `make run`. And the game will pop up:
+    
     ![image](/imgs/pong.png)
-**The game also flickers sometimes a little bit, but it is playable. Maybe you should not play it, if are known for EPILEPTIC SEIZURES!!!**
+    
+   **The game also flickers sometimes a little bit, but it is playable. Maybe you should not play it, if are known for EPILEPTIC SEIZURES!!!**
 
 3. **Run as bootloader for an x86_64 machine**
     After running `make` or `make floppy` a `.img file` will be generated. Using this file you can make a bootable VM or USB.
