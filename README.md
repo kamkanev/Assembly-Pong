@@ -21,16 +21,19 @@ To build and run the game you will need **nasm** and **[qemu-system](https://www
 1. **Linux**
 Run the following commands:
 - **Ubuntu/Debian**
+
 `` sudo apt install nasm``
 
 ``apt-get install qemu ``
 
 - **Arch**
+
 ``pacman -S nasm``
 
 ``pacman -S qemu``
 
 - **Fedora**
+
 ``dnf install nasm``
 
 ``dnf install @virtualization``
