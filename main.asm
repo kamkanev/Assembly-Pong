@@ -1,6 +1,8 @@
 BITS 16
 
-jmp start ;ALWAYS
+pong:
+call start
+jmp exit
 
 %include "boot.asm"
 
@@ -103,8 +105,7 @@ start:
     jl .end_player_point
     
     ret
-    mov word[score_player], 0
-    mov word[score_enemy], 0
+    ;jmp exit
     
 .end_player_point:
     
@@ -118,8 +119,7 @@ start:
     jl .check_horizontal
     
     ret
-    mov word[score_player], 0
-    mov word[score_enemy], 0
+    ;jmp exit
     
 
 .check_horizontal:
@@ -191,7 +191,7 @@ start:
         mov ah, 02h
         mov bh, 0       ; Page 0
         mov dh, 2       ; Line 2
-        mov dl, 1       ; Column 1 for player score
+        mov dl, 10       ; Column 1 for player score
         pusha
         int 0x10
         
@@ -200,7 +200,7 @@ start:
         call print_score
         popa
         
-        mov dl, 35              ; Column 35 for enemy score
+        mov dl, 29              ; Column 35 for enemy score
         int 0x10
         mov ax, [score_enemy]
         mov bl, ENEMY_COLOR
@@ -238,7 +238,7 @@ reset_ball:
     mov word[ball_x], BALL_START_X
     mov word[ball_y], BALL_START_Y
     ret
-
+exit:
 
 ; ###############################
 ; #	Data Segment		#
