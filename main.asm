@@ -9,14 +9,14 @@ jmp exit
 %define SCREEN_WIDTH 320
 %define SCREEN_HEIGHT 200
 
-%define ENEMY_Y_POS 10
+%define ENEMY_X_POS 10
 %define ENEMY_COLOR RED
 
-%define PLAYER_WIDTH 70
-%define PLAYER_HEIGHT 5
-%define PLAYER_Y_POS ( SCREEN_HEIGHT - PLAYER_HEIGHT - ENEMY_Y_POS )
-%define PLAYER_START_POS ( SCREEN_WIDTH - PLAYER_WIDTH ) / 2
-%define PLAYER_STEP_SIZE 30
+%define PLAYER_WIDTH 5
+%define PLAYER_HEIGHT 50
+%define PLAYER_X_POS ( SCREEN_WIDTH - PLAYER_WIDTH - ENEMY_X_POS )
+%define PLAYER_START_POS ( SCREEN_HEIGHT - PLAYER_HEIGHT ) / 2
+%define PLAYER_STEP_SIZE 10
 %define PLAYER_COLOR BLUE
 
 %define BALL_SIZE 5
@@ -25,10 +25,10 @@ jmp exit
 %define BALL_COLOR 15
 %define BALL_STEP_SIZE 2
 
-%define KEY_LEFT 04Bh
-%define KEY_RIGHT 04Dh
-%define KEY_A 01Eh
-%define KEY_D 020h
+%define KEY_UP 048h
+%define KEY_DOWN 050h
+%define KEY_W 011h
+%define KEY_S 01Fh
 
 start:
     ;SETUP STACK
@@ -63,9 +63,9 @@ start:
 	mov bx, [ball_step_y]
 	add [ball_x], ax
 	add [ball_y], bx
-	cmp word [ball_y], ENEMY_Y_POS + PLAYER_HEIGHT
+	cmp word [ball_x], ENEMY_X_POS + PLAYER_WIDTH
 	jb .enemy_line		; Ball is above enemy, do smthng!
-	cmp word [ball_y], PLAYER_Y_POS - BALL_SIZE
+	cmp word [ball_x], PLAYER_X_POS - BALL_SIZE
 	ja .player_line		; Ball is below player, do smthng!
 	jmp .check_horizontal	; Ball is somewhere in the field, just check
 				; if it hits the wall.
@@ -73,27 +73,27 @@ start:
 
 
 .enemy_line:
-    mov ax, [enemy_x]	; Check if enemy_x <= ball_x <= enemy_x +
-    cmp [ball_x], ax	; player_width
+    mov ax, [enemy_y]	; Check if enemy_y <= ball_x <= enemy_y +
+    cmp [ball_y], ax	; player_width
     jb .player_point	; If yes, flip the y_step of the ball.
-    add ax, PLAYER_WIDTH	; Else give the player a point.
-    cmp [ball_x], ax
+    add ax, PLAYER_HEIGHT	; Else give the player a point.
+    cmp [ball_y], ax
     ja .player_point
     ; BALL HIT ENEMY
-    neg word [ball_step_y]
+    neg word [ball_step_x]
     jmp .check_horizontal	; Just check, if the ball is in the corner.
 
 
 .player_line:
 
-    mov ax, [player_x]
-    cmp [ball_x], ax
+    mov ax, [player_y]
+    cmp [ball_y], ax
     jb .enemy_point
-    add ax, PLAYER_WIDTH
-    cmp [ball_x], ax
+    add ax, PLAYER_HEIGHT
+    cmp [ball_y], ax
     ja .enemy_point
     ; BALL HIT PLAYER
-    neg word [ball_step_y]
+    neg word [ball_step_x]
     jmp .check_horizontal
     
 
@@ -123,15 +123,15 @@ start:
     
 
 .check_horizontal:
-    mov ax, [ball_x]
+    mov ax, [ball_y]
     cmp ax, 0
     jb .flip_horizontal
-    cmp ax, SCREEN_WIDTH - BALL_SIZE
+    cmp ax, SCREEN_HEIGHT - BALL_SIZE
     jb .end_move_ball
 
 .flip_horizontal:
     ;Ball hits a wall changes directions
-    neg word [ball_step_x]
+    neg word [ball_step_y]
 
 .end_move_ball:
 
@@ -142,40 +142,40 @@ start:
     
     mov ah, 00h
     int 16h
-    cmp ah, KEY_LEFT            ;; Scancode stored in ah
-    je .player_left
-    cmp ah, KEY_RIGHT
-    je .player_right
-    cmp ah, KEY_A
-    je .enemy_left
-    cmp ah, KEY_D
-    je .enemy_right
+    cmp ah, KEY_UP            ;; Scancode stored in ah
+    je .player_up
+    cmp ah, KEY_DOWN
+    je .player_down
+    cmp ah, KEY_W
+    je .enemy_up
+    cmp ah, KEY_S
+    je .enemy_down
     jmp .move_player_done
 
     
 
-.player_right:
-	cmp word [player_x], SCREEN_WIDTH - (PLAYER_STEP_SIZE + PLAYER_WIDTH)
+.player_down:
+	cmp word [player_y], SCREEN_HEIGHT - (PLAYER_STEP_SIZE + PLAYER_HEIGHT)
 	ja .move_player_done
-	add word [player_x], PLAYER_STEP_SIZE
+	add word [player_y], PLAYER_STEP_SIZE
 	jmp .move_player_done
 
-.player_left:	
-	cmp word [player_x], PLAYER_STEP_SIZE
+.player_up:	
+	cmp word [player_y], PLAYER_STEP_SIZE
 	jb .move_player_done
-	sub word [player_x], PLAYER_STEP_SIZE
+	sub word [player_y], PLAYER_STEP_SIZE
 	jmp .move_player_done
 
-.enemy_right:
-	cmp word [enemy_x], SCREEN_WIDTH - (PLAYER_STEP_SIZE + PLAYER_WIDTH)
+.enemy_down:
+	cmp word [enemy_y], SCREEN_HEIGHT - (PLAYER_STEP_SIZE + PLAYER_HEIGHT)
 	ja .move_player_done
-	add word [enemy_x], PLAYER_STEP_SIZE
+	add word [enemy_y], PLAYER_STEP_SIZE
 	jmp .move_player_done
 
-.enemy_left:	
-	cmp word [enemy_x], PLAYER_STEP_SIZE
+.enemy_up:	
+	cmp word [enemy_y], PLAYER_STEP_SIZE
 	jb .move_player_done
-	sub word [enemy_x], PLAYER_STEP_SIZE
+	sub word [enemy_y], PLAYER_STEP_SIZE
 
 .move_player_done:
         ; Clear the screen
@@ -191,7 +191,7 @@ start:
         mov ah, 02h
         mov bh, 0       ; Page 0
         mov dh, 2       ; Line 2
-        mov dl, 10       ; Column 1 for player score
+        mov dl, 29       ; Column 29 for player score
         pusha
         int 0x10
         
@@ -200,23 +200,25 @@ start:
         call print_score
         popa
         
-        mov dl, 29              ; Column 35 for enemy score
+        mov dl, 10              ; Column 10 for enemy score
         int 0x10
         mov ax, [score_enemy]
         mov bl, ENEMY_COLOR
         call print_score
         
         ;DRAW PLAYER
-        push word[player_x]
-        push word PLAYER_Y_POS
+        push word PLAYER_X_POS        
+        push word[player_y]
+
         push PLAYER_WIDTH
 	push PLAYER_HEIGHT
 	mov ah, PLAYER_COLOR
 	call draw_rect
 
        ;DRAW ENEMY
-        push word[enemy_x]
-        push word ENEMY_Y_POS
+        push word ENEMY_X_POS
+        push word[enemy_y]
+
         push PLAYER_WIDTH
 	push PLAYER_HEIGHT
 	mov ah, ENEMY_COLOR
@@ -252,8 +254,8 @@ exit:
 	score_player dw 0
 	score_enemy dw 0
 
-	player_x dw PLAYER_START_POS
-	enemy_x dw PLAYER_START_POS
+	player_y dw PLAYER_START_POS
+	enemy_y dw PLAYER_START_POS
 
 ; The bios loads exact 512 bytes. Here we fill this file to byte 510 with zeros
 ; and the add a "boot signature", whatever this shit is.
