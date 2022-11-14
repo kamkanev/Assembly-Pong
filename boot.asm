@@ -14,7 +14,7 @@ print_score:
     ; THIS FUNCTION PRINTS AN UNSIGNED INTEGER FROM THE AX REGISTER WITH THE
     ; COLOR FROM THE BL REGISTER.
     
-    add ax, 30h;61h - a     ;Get ascii of int
+    add ax, 30h     ;61h - a     ;Get ascii of int
     mov ah, 09h
     mov bh, 0       ;Page 0
     mov cx, 1       ;Times print: 1
